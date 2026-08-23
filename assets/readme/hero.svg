@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420" role="img" aria-labelledby="title desc">
+  <title id="title">codex-opencode-skill</title>
+  <desc id="desc">A Codex skill that launches isolated local OpenCode sessions, verifies the selected model, captures the reply, and preserves exact session IDs.</desc>
+
+  <defs>
+    <linearGradient id="surface" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#07111f"/>
+      <stop offset="1" stop-color="#0b1728"/>
+    </linearGradient>
+    <linearGradient id="path" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7dd3fc"/>
+      <stop offset="1" stop-color="#5eead4"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="420" rx="28" fill="url(#surface)"/>
+  <path d="M0 76H1200M736 76V420" stroke="#1e2d43" stroke-width="1"/>
+
+  <g id="metadata" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18">
+    <circle cx="58" cy="39" r="6" fill="#5eead4"/>
+    <text x="76" y="46" fill="#94a3b8">CODEX SKILL / OPENCODE SESSION ORCHESTRATION</text>
+    <text x="1138" y="46" text-anchor="end" fill="#7dd3fc">LOCAL · VERIFIED</text>
+  </g>
+
+  <g id="title-block" transform="translate(58 118)">
+    <text x="0" y="0" fill="#f8fafc" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="62" font-weight="750">codex-opencode</text>
+    <text x="0" y="68" fill="#5eead4" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="62" font-weight="750">skill</text>
+    <text x="0" y="121" fill="#cbd5e1" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="25">Launch isolated OpenCode sessions.</text>
+    <text x="0" y="156" fill="#cbd5e1" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="25">Verify the model. Keep the exact session.</text>
+
+    <g transform="translate(0 202)" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18">
+      <rect width="178" height="42" rx="10" fill="#102239" stroke="#28415d"/>
+      <text x="18" y="27" fill="#7dd3fc">127.0.0.1 only</text>
+      <rect x="192" width="146" height="42" rx="10" fill="#102239" stroke="#28415d"/>
+      <text x="210" y="27" fill="#5eead4">random auth</text>
+      <rect x="352" width="162" height="42" rx="10" fill="#102239" stroke="#28415d"/>
+      <text x="370" y="27" fill="#cbd5e1">exact session</text>
+    </g>
+  </g>
+
+  <g id="session-proof" transform="translate(778 104)">
+    <rect width="364" height="282" rx="18" fill="#081421" stroke="#28415d" stroke-width="2"/>
+    <g transform="translate(22 23)">
+      <circle cx="7" cy="7" r="7" fill="#fb7185"/>
+      <circle cx="31" cy="7" r="7" fill="#fbbf24"/>
+      <circle cx="55" cy="7" r="7" fill="#5eead4"/>
+      <text x="318" y="13" text-anchor="end" fill="#64748b" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="16">smoke-test --json</text>
+    </g>
+
+    <g transform="translate(24 76)" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+      <text x="0" y="0" fill="#94a3b8" font-size="17">CODEX</text>
+      <text x="122" y="0" fill="#94a3b8" font-size="17">LOCAL SERVE</text>
+      <text x="275" y="0" fill="#94a3b8" font-size="17">MODEL</text>
+      <path d="M12 28H300" stroke="url(#path)" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="12" cy="28" r="8" fill="#7dd3fc"/>
+      <circle cx="160" cy="28" r="8" fill="#0f2033" stroke="#5eead4" stroke-width="4"/>
+      <circle cx="300" cy="28" r="8" fill="#5eead4"/>
+
+      <g transform="translate(0 74)" font-size="20">
+        <text x="0" y="0" fill="#64748b">port</text>
+        <text x="98" y="0" fill="#f8fafc">free / isolated</text>
+        <text x="0" y="37" fill="#64748b">model</text>
+        <text x="98" y="37" fill="#5eead4">✓ verified</text>
+        <text x="0" y="74" fill="#64748b">reply</text>
+        <text x="98" y="74" fill="#7dd3fc">✓ captured</text>
+        <text x="0" y="111" fill="#64748b">session</text>
+        <text x="98" y="111" fill="#f8fafc">✓ exact ID</text>
+      </g>
+    </g>
+  </g>
+</svg>

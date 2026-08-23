@@ -1,0 +1,9 @@
+{
+  "model": "opencode-go/ox-alpha-free",
+  "agent": "build",
+  "host": "127.0.0.1",
+  "request_timeout_seconds": 600,
+  "permission": {
+    "*": "allow"
+  }
+}
