@@ -147,6 +147,7 @@ python "$env:USERPROFILE\.codex\skills\codex-opencode-session\scripts\opencode_s
 - `NO_PROXY` 自动包含 `127.0.0.1`、`localhost` 和 `::1`，现有外部代理设置继续保留。
 - 测试数据仅按脚本本次记录的准确会话 ID 删除。
 - 失败日志保存在系统临时目录，错误信息不会显示认证密码。
+- 模型供应商返回错误或没有生成文本时，命令以非零状态退出，并提供经过删减的 `assistant_error`，便于准确重试对应会话。
 - 无人值守模式会允许 OpenCode 工具自动执行，因此应在用户已经授权的目录与任务中使用。
 
 ## 当前限制
@@ -168,6 +169,8 @@ python "$env:USERPROFILE\.codex\skills\codex-opencode-session\scripts\opencode_s
 │  └─ operation-protocol.md
 ├─ scripts/
 │  └─ opencode_session.py
+├─ tests/
+│  └─ test_opencode_session.py
 └─ assets/readme/
    └─ hero.svg
 ```
@@ -176,6 +179,7 @@ python "$env:USERPROFILE\.codex\skills\codex-opencode-session\scripts\opencode_s
 
 ```powershell
 python -m py_compile .\scripts\opencode_session.py
+python -m unittest discover -s .\tests -v
 python .\scripts\opencode_session.py status --json
 ```
 

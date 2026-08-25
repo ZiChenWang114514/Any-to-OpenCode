@@ -24,6 +24,14 @@ SKILL_DIR = Path(__file__).resolve().parent.parent
 DEFAULTS_PATH = SKILL_DIR / "references" / "defaults.json"
 
 
+class OpenCodeAssistantError(RuntimeError):
+    """A structured assistant-side error returned by OpenCode."""
+
+    def __init__(self, details: dict[str, Any]) -> None:
+        self.details = details
+        super().__init__(str(details.get("message") or "OpenCode assistant returned an error"))
+
+
 def load_defaults() -> dict[str, Any]:
     with DEFAULTS_PATH.open("r", encoding="utf-8") as handle:
         data = json.load(handle)
@@ -163,6 +171,43 @@ def read_tail(path: Path, max_chars: int = 4000) -> str:
     return path.read_text(encoding="utf-8", errors="replace")[-max_chars:]
 
 
+def parse_assistant_response(
+    response: dict[str, Any], session_id: str, requested_model_id: str,
+) -> tuple[str, str | None]:
+    info = response.get("info")
+    info = info if isinstance(info, dict) else {}
+    error = info.get("error")
+    if isinstance(error, dict):
+        data = error.get("data")
+        data = data if isinstance(data, dict) else {}
+        raise OpenCodeAssistantError({
+            "session_id": session_id,
+            "name": error.get("name") or "AssistantError",
+            "message": data.get("message") or error.get("message") or "OpenCode assistant returned an error",
+            "status_code": data.get("statusCode"),
+            "retryable": data.get("isRetryable"),
+        })
+
+    parts = response.get("parts")
+    parts = parts if isinstance(parts, list) else []
+    reply = "\n".join(
+        part.get("text", "") for part in parts
+        if isinstance(part, dict) and part.get("type") == "text" and part.get("text")
+    )
+    actual_model = info.get("modelID")
+    if actual_model and actual_model != requested_model_id:
+        raise RuntimeError(f"Requested model {requested_model_id}, received {actual_model}")
+    if not reply.strip():
+        raise OpenCodeAssistantError({
+            "session_id": session_id,
+            "name": "EmptyAssistantReply",
+            "message": "OpenCode assistant returned no text reply",
+            "status_code": None,
+            "retryable": None,
+        })
+    return reply, actual_model
+
+
 def invoke(args: argparse.Namespace, smoke_test: bool = False) -> dict[str, Any]:
     defaults = load_defaults()
     executable = find_opencode()
@@ -216,13 +261,7 @@ def invoke(args: argparse.Namespace, smoke_test: bool = False) -> dict[str, Any]
         )
         if not isinstance(response, dict):
             raise RuntimeError("OpenCode returned an unexpected response")
-        reply = "\n".join(
-            part.get("text", "") for part in response.get("parts", [])
-            if part.get("type") == "text" and part.get("text")
-        )
-        actual_model = response.get("info", {}).get("modelID")
-        if actual_model and actual_model != model_id:
-            raise RuntimeError(f"Requested model {model_id}, received {actual_model}")
+        reply, actual_model = parse_assistant_response(response, session_id, model_id)
         if smoke_test and reply.strip() != "OPENCODE_SESSION_OK":
             raise RuntimeError(f"Unexpected smoke-test reply: {reply!r}")
         result = {
@@ -237,6 +276,8 @@ def invoke(args: argparse.Namespace, smoke_test: bool = False) -> dict[str, Any]
         return result
     except Exception as exc:
         details: dict[str, Any] = {"error": str(exc), "log_dir": str(log_dir)}
+        if isinstance(exc, OpenCodeAssistantError):
+            details["assistant_error"] = exc.details
         for name in ("server.stdout.log", "server.stderr.log"):
             if text := read_tail(log_dir / name):
                 details[f"{name}_tail"] = text
