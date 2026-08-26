@@ -11,6 +11,8 @@ description: 在用户要求连接、启动、继续、监督、检查或排查�
 
 默认模型从 [references/defaults.json](references/defaults.json) 读取。用户明确指定其他模型时，以用户选择为准。以后修改默认模型时，只改该 JSON 的 `model` 字段，不要在脚本或其他说明中复制默认值。
 
+模型名称必须以 `opencode models <provider>` 的实时结果为准。OpenCode Go 使用 `opencode-go/...`，OpenCode Zen 使用 `opencode/...`；相似名称不代表两条线路可以共用模型 ID 或凭据。修改默认值前先用 `--model provider/model` 完成真实测试，修改后再次运行 `status --json`，确认 `default_model_available` 为 `true`。
+
 ## 开始前
 
 1. 运行只读状态检查：
@@ -19,9 +21,10 @@ description: 在用户要求连接、启动、继续、监督、检查或排查�
    python <skill-dir>\scripts\opencode_session.py status --json
    ```
 
-2. 确认准确工作目录和用户希望 OpenCode 完成的任务。先阅读该目录适用的项目指令、`git status --short`、现有差异和测试命令，保留用户已有修改。
-3. 安装、升级、登录、公开分享、提交、推送、发布、部署、批量删除会话或改动全局设置，需要用户明确授权。不要把普通会话任务扩展为这些操作。
-4. 发现已有 OpenCode 服务时不要按进程名统一终止。辅助脚本会选择空闲端口，并且只关闭自己启动的进程树。
+2. 使用 `opencode providers list` 确认默认模型所属 provider 已配置凭据。登录或替换 API Key 需要用户明确授权；密钥只通过 OpenCode 登录流程输入，不得出现在命令行参数、日志、提示词或仓库文件中。
+3. 确认准确工作目录和用户希望 OpenCode 完成的任务。先阅读该目录适用的项目指令、`git status --short`、现有差异和测试命令，保留用户已有修改。
+4. 安装、升级、登录、公开分享、提交、推送、发布、部署、批量删除会话或改动全局设置，需要用户明确授权。不要把普通会话任务扩展为这些操作。
+5. 发现已有 OpenCode 服务时不要按进程名统一终止。辅助脚本会选择空闲端口，并且只关闭自己启动的进程树。
 
 ## 调用 OpenCode
 
@@ -43,6 +46,15 @@ python <skill-dir>\scripts\opencode_session.py smoke-test --dir <safe-dir> --jso
 ```
 
 测试只创建一个精确命名的临时会话，确认回复所用模型后按准确会话 ID 删除，并关闭自己启动的服务。
+
+更换模型时，先用临时覆盖验证候选模型：
+
+```powershell
+python <skill-dir>\scripts\opencode_session.py smoke-test `
+  --dir <safe-dir> --model <provider/model> --agent plan --json
+```
+
+只有回复文本、`actual_model` 和会话清理都通过后，才修改 `defaults.json`。供应商目录中出现模型名称只说明模型可见，不能替代真实调用。
 
 ## 阶段协作
 

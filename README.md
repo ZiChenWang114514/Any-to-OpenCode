@@ -6,22 +6,22 @@
   <a href="./LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-5eead4?style=flat-square"></a>
   <img alt="Python 3.10 or newer" src="https://img.shields.io/badge/python-3.10%2B-7dd3fc?style=flat-square">
   <img alt="Tested on Windows" src="https://img.shields.io/badge/tested-Windows-94a3b8?style=flat-square">
-  <img alt="OpenCode 1.18.21 verified" src="https://img.shields.io/badge/OpenCode-1.18.21-f8fafc?style=flat-square">
+  <img alt="OpenCode 1.18.23 verified" src="https://img.shields.io/badge/OpenCode-1.18.23-f8fafc?style=flat-square">
 </p>
 
 一个面向 Codex 的个人 Skill：让 Codex 通过本地 HTTP 服务创建、继续和检查 OpenCode 会话，并把模型选择、随机认证、临时端口与会话清理封装为可复用脚本。
 
 ## 真实试运行
 
-下面是 `smoke-test` 的实际结果。公开示例省略了临时会话 ID；测试会话在核验完成后已删除。
+下面是 Muse Spark 1.2 贡献者免费版的实际结果。公开示例省略了临时会话 ID；测试会话在核验完成后已删除。
 
 ```json
 {
   "ok": true,
-  "requested_model": "opencode-go/ox-alpha-free",
-  "actual_model": "ox-alpha-free",
+  "requested_model": "opencode-go/muse-spark-1.2-contributor",
+  "actual_model": "muse-spark-1.2-contributor",
   "reply": "OPENCODE_SESSION_OK",
-  "server_version": "1.18.21",
+  "server_version": "1.18.23",
   "test_session_deleted": true
 }
 ```
@@ -121,9 +121,11 @@ python "$env:USERPROFILE\.codex\skills\codex-opencode-session\scripts\opencode_s
 
 ```json
 {
-  "model": "opencode-go/ox-alpha-free"
+  "model": "opencode-go/muse-spark-1.2-contributor"
 }
 ```
+
+这是 OpenCode Go 的贡献者免费条目。Go provider 的准确 ID 以 `opencode models opencode-go` 为准；Zen provider 使用 `opencode/...` 形式，并有独立的模型目录与认证信息。
 
 需要更换默认模型时，只修改 `model` 字段。单次调用也可以使用：
 
@@ -154,7 +156,7 @@ python "$env:USERPROFILE\.codex\skills\codex-opencode-session\scripts\opencode_s
 
 - 每个 `invoke` 进程一次处理一个任务；可以并行启动多个进程，但仓库目前没有批量调度命令。
 - 当前实现使用同步消息 API，长任务需要设置足够的等待时间。
-- 已在 Windows、Python 3.14 和 OpenCode 1.18.21 上真实验证；其他系统仍需自行测试。
+- 已在 Windows、Python 3.14 和 OpenCode 1.18.23 上真实验证；其他系统仍需自行测试。
 - Skill 不负责安装、升级或登录 OpenCode。
 
 ## 仓库结构

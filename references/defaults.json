@@ -1,5 +1,5 @@
 {
-  "model": "opencode-go/ox-alpha-free",
+  "model": "opencode-go/muse-spark-1.2-contributor",
   "agent": "build",
   "host": "127.0.0.1",
   "request_timeout_seconds": 600,

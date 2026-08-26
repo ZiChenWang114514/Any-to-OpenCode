@@ -8,12 +8,13 @@ SPEC = importlib.util.spec_from_file_location("opencode_session", SCRIPT_PATH)
 assert SPEC and SPEC.loader
 opencode_session = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(opencode_session)
+TEST_MODEL_ID = "muse-spark-1.2-contributor"
 
 
 class ParseAssistantResponseTests(unittest.TestCase):
     def test_returns_text_and_actual_model(self) -> None:
         response = {
-            "info": {"modelID": "ox-alpha-free"},
+            "info": {"modelID": TEST_MODEL_ID},
             "parts": [
                 {"type": "text", "text": "first"},
                 {"type": "tool", "text": "ignored"},
@@ -22,16 +23,16 @@ class ParseAssistantResponseTests(unittest.TestCase):
         }
 
         reply, actual_model = opencode_session.parse_assistant_response(
-            response, "session-test", "ox-alpha-free",
+            response, "session-test", TEST_MODEL_ID,
         )
 
         self.assertEqual(reply, "first\nsecond")
-        self.assertEqual(actual_model, "ox-alpha-free")
+        self.assertEqual(actual_model, TEST_MODEL_ID)
 
     def test_provider_error_is_structured_and_sanitized(self) -> None:
         response = {
             "info": {
-                "modelID": "ox-alpha-free",
+                "modelID": TEST_MODEL_ID,
                 "error": {
                     "name": "APIError",
                     "data": {
@@ -48,7 +49,7 @@ class ParseAssistantResponseTests(unittest.TestCase):
 
         with self.assertRaises(opencode_session.OpenCodeAssistantError) as caught:
             opencode_session.parse_assistant_response(
-                response, "session-test", "ox-alpha-free",
+                response, "session-test", TEST_MODEL_ID,
             )
 
         self.assertEqual(caught.exception.details, {
@@ -60,11 +61,11 @@ class ParseAssistantResponseTests(unittest.TestCase):
         })
 
     def test_empty_text_is_an_error(self) -> None:
-        response = {"info": {"modelID": "ox-alpha-free"}, "parts": []}
+        response = {"info": {"modelID": TEST_MODEL_ID}, "parts": []}
 
         with self.assertRaises(opencode_session.OpenCodeAssistantError) as caught:
             opencode_session.parse_assistant_response(
-                response, "session-empty", "ox-alpha-free",
+                response, "session-empty", TEST_MODEL_ID,
             )
 
         self.assertEqual(caught.exception.details["name"], "EmptyAssistantReply")
@@ -78,7 +79,7 @@ class ParseAssistantResponseTests(unittest.TestCase):
 
         with self.assertRaisesRegex(RuntimeError, "Requested model"):
             opencode_session.parse_assistant_response(
-                response, "session-test", "ox-alpha-free",
+                response, "session-test", TEST_MODEL_ID,
             )
 
 

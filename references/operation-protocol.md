@@ -4,6 +4,8 @@
 
 辅助脚本读取同目录的 `defaults.json`。默认模型需要调整时，只修改该文件的 `model` 字段。单次调用可用 `--model provider/model` 临时覆盖。
 
+模型 ID 应从 `opencode models <provider>` 的当前输出中选择。`opencode-go` 与 `opencode` 分别表示 OpenCode Go 和 OpenCode Zen，二者的模型目录和认证信息相互独立。目录可见之后仍需做一次实际回复测试，再将候选模型设为默认值。
+
 OpenCode 会话集中保存在 `opencode db path` 显示的 SQLite 数据库中，并根据服务启动目录记录项目归属。继续会话时，`--dir` 应保持为创建该会话时的目录。
 
 ## 本地服务
@@ -59,6 +61,10 @@ OpenCode 会话集中保存在 `opencode db path` 显示的 SQLite 数据库中�
 无人值守服务中，默认的 `external_directory` 或重复工具确认可能长期等待交互。辅助脚本按 `defaults.json` 设置权限。因为该设置允许工具自动执行，必须先确认用户已经授权对应目录和任务。
 
 交互式 TUI 可保留人工确认；单次 CLI 也可以使用 `--auto`。这些方式的风险不同，不要修改用户的全局 OpenCode 配置来追求一致。
+
+## 凭据
+
+使用 `opencode providers list` 只确认凭据类型和 provider 是否存在，不读取或显示密钥内容。用户授权登录或更换密钥时，使用 `opencode providers login --provider <provider>` 的交互输入；不要把 API Key 放入命令行参数、脚本、日志、README 或 Git 提交。测试输出也不得包含认证头和原始供应商响应正文。
 
 ## 会话管理
 
