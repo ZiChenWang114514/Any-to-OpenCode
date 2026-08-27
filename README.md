@@ -1,5 +1,8 @@
 <p align="center">
-  <img src="./assets/readme/hero.svg" width="100%" alt="Codex discovers, verifies, and dispatches OpenCode free models">
+  <picture>
+    <source media="(max-width: 680px)" srcset="./assets/readme/hero-mobile.png">
+    <img src="./assets/readme/hero.png" width="100%" alt="OpenCode Session: route work from any compatible harness to the designated OpenCode Harness">
+  </picture>
 </p>
 
 <p align="center">
