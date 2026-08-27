@@ -1,6 +1,6 @@
 interface:
   display_name: "Codex OpenCode Session"
-  short_description: "连接、运行、继续并监督本机 OpenCode 编码会话"
-  default_prompt: "Use $codex-opencode-session to start an OpenCode session for this project."
+  short_description: "发现、试跑并调度本机 OpenCode 模型会话"
+  default_prompt: "Use $codex-opencode-session to verify the free model pool and dispatch an OpenCode session for this project."
 policy:
   allow_implicit_invocation: true

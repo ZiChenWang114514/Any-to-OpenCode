@@ -1,6 +1,6 @@
 ---
 name: codex-opencode-session
-description: 在用户要求连接、启动、继续、监督、检查或排查本机 OpenCode 会话，或希望将 OpenCode 作为外部编码协作者时使用；覆盖 Windows 无头服务、模型选择、会话调用、真实验证和精确清理。不用于安装或升级 OpenCode。
+description: 在用户要求连接、启动、继续、监督、检查或排查本机 OpenCode 会话，或希望发现、试跑和调度 OpenCode 免费模型时使用；覆盖 Windows 无头服务、模型选择、并发验证、会话调用和精确清理。不用于安装或升级 OpenCode。
 ---
 
 # Codex OpenCode Session
@@ -37,7 +37,7 @@ python <skill-dir>\scripts\opencode_session.py invoke `
 
 脚本会显式设置本地服务账号、随机密码、回环地址直连和无人值守权限，启动隔离服务，创建会话并等待回复。成功后保留会话，返回 `session_id`、模型、回复和服务版本；临时服务随即关闭。继续指定会话时添加 `--session-id <id>`，并使用原会话的工作目录。
 
-默认使用 `build` agent。只读分析使用 `--agent plan`。用户指定模型时使用 `--model provider/model`，这只影响当前调用。
+默认使用 `build` agent。只读分析使用 `--agent plan`。用户指定模型时使用 `--model provider/model`，这只影响当前调用。用户指定模型思考强度时使用 `--variant <variant>`；取值必须来自该模型实时元数据中的 `variants`，并在真实测试结果中核对 `actual_variant`。
 
 首次配置或版本变化后运行无文件改动的真实测试：
 
@@ -51,10 +51,25 @@ python <skill-dir>\scripts\opencode_session.py smoke-test --dir <safe-dir> --jso
 
 ```powershell
 python <skill-dir>\scripts\opencode_session.py smoke-test `
-  --dir <safe-dir> --model <provider/model> --agent plan --json
+  --dir <safe-dir> --model <provider/model> --variant <variant> --agent plan --json
 ```
 
 只有回复文本、`actual_model` 和会话清理都通过后，才修改 `defaults.json`。供应商目录中出现模型名称只说明模型可见，不能替代真实调用。
+
+## 免费模型池
+
+用户希望使用 OpenCode 免费模型、核查当前免费阵容或并发分配任务时，先运行：
+
+```powershell
+python <skill-dir>\scripts\opencode_session.py free-pool `
+  --dir <safe-dir> --provider opencode --parallel 3 --timeout 300 --json
+```
+
+`free-pool` 刷新 provider 的实时元数据，只选择状态为 active 且输入、输出、缓存读写价格全部为零的模型，并为每个模型创建隔离的 `plan` 测试会话。`--parallel` 控制同时测试的模型数量；默认不重试，可用 `--retries 1` 处理一次偶发失败。
+
+只把回复正确、`actual_model` 一致且测试会话已删除的条目视为可调度模型。`429`、超时、空回复、模型不一致或清理失败都必须保留在结果中。遇到免费额度限制时停止继续请求，不更换身份规避限制，也不要将“目录可见”描述为“当前可用”。
+
+将真实任务分配给通过测试的模型时，每个任务使用独立 `invoke` 进程和明确的工作目录、提示词、模型 ID 与标题。先从较小并发量开始，根据本机资源、provider 限制和任务风险调整；Codex 仍需检查实际文件与测试结果。
 
 ## 阶段协作
 
@@ -69,6 +84,6 @@ python <skill-dir>\scripts\opencode_session.py smoke-test `
 
 - 服务只监听 `127.0.0.1`，每次使用随机密码；日志和最终回复不得显示密码或认证头。
 - 自动化会话允许工具调用，因此只在用户授权的工作目录和任务范围内使用。不要让 OpenCode 修改工作目录以外的内容，除非用户明确要求。
-- 删除测试数据时只使用脚本本次创建并记录的准确会话 ID。普通调用默认保留会话。
+- 删除测试数据时只使用脚本本次创建并记录的准确会话 ID。成功或失败的 smoke test 都会尝试删除自己创建的测试会话；普通调用默认保留会话。
 - 不要统一终止 OpenCode、桌面端、TUI 或其他端口上的服务。
 - 保留用户已有文件与无关改动；不要擅自执行 commit、push、reset、clean、stash 或删除操作。

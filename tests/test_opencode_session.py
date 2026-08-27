@@ -22,12 +22,25 @@ class ParseAssistantResponseTests(unittest.TestCase):
             ],
         }
 
-        reply, actual_model = opencode_session.parse_assistant_response(
+        reply, actual_model, actual_variant = opencode_session.parse_assistant_response(
             response, "session-test", TEST_MODEL_ID,
         )
 
         self.assertEqual(reply, "first\nsecond")
         self.assertEqual(actual_model, TEST_MODEL_ID)
+        self.assertIsNone(actual_variant)
+
+    def test_returns_actual_variant(self) -> None:
+        response = {
+            "info": {"modelID": TEST_MODEL_ID, "variant": "high"},
+            "parts": [{"type": "text", "text": "done"}],
+        }
+
+        _, _, actual_variant = opencode_session.parse_assistant_response(
+            response, "session-test", TEST_MODEL_ID,
+        )
+
+        self.assertEqual(actual_variant, "high")
 
     def test_provider_error_is_structured_and_sanitized(self) -> None:
         response = {
@@ -81,6 +94,48 @@ class ParseAssistantResponseTests(unittest.TestCase):
             opencode_session.parse_assistant_response(
                 response, "session-test", TEST_MODEL_ID,
             )
+
+
+class FreeModelDiscoveryTests(unittest.TestCase):
+    def test_parses_active_zero_cost_models(self) -> None:
+        output = """opencode/free-one
+{
+  "id": "free-one",
+  "providerID": "opencode",
+  "status": "active",
+  "cost": {"input": 0, "output": 0, "cache": {"read": 0, "write": 0}}
+}
+opencode/paid-one
+{
+  "id": "paid-one",
+  "providerID": "opencode",
+  "status": "active",
+  "cost": {"input": 1, "output": 2, "cache": {"read": 0, "write": 0}}
+}
+"""
+
+        records = opencode_session.parse_verbose_models(output, "opencode")
+        free = [record["id"] for record in records if opencode_session.is_zero_cost_model(record)]
+
+        self.assertEqual(free, ["free-one"])
+
+    def test_requires_all_advertised_costs_to_be_zero(self) -> None:
+        record = {
+            "status": "active",
+            "cost": {"input": 0, "output": 0, "cache": {"read": 0.01, "write": 0}},
+        }
+
+        self.assertFalse(opencode_session.is_zero_cost_model(record))
+
+    def test_failure_summary_omits_local_log_paths(self) -> None:
+        error = RuntimeError(
+            '{"error":"timed out","log_dir":"C:/private/temp",'
+            '"test_session_deleted":true}'
+        )
+
+        summary = opencode_session.summarize_failure(error)
+
+        self.assertEqual(summary, {"error": "timed out", "test_session_deleted": True})
 
 
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./assets/readme/hero.svg" width="100%" alt="Codex OpenCode Skill creates isolated local OpenCode sessions with verified models and exact session IDs">
+  <img src="./assets/readme/hero.svg" width="100%" alt="Codex discovers, verifies, and dispatches OpenCode free models">
 </p>
 
 <p align="center">
@@ -7,93 +7,71 @@
   <img alt="Python 3.10 or newer" src="https://img.shields.io/badge/python-3.10%2B-7dd3fc?style=flat-square">
   <img alt="Tested on Windows" src="https://img.shields.io/badge/tested-Windows-94a3b8?style=flat-square">
   <img alt="OpenCode 1.18.23 verified" src="https://img.shields.io/badge/OpenCode-1.18.23-f8fafc?style=flat-square">
+  <img alt="Default Muse Spark 1.2 Contributor" src="https://img.shields.io/badge/default-Muse_Spark_1.2-5eead4?style=flat-square">
 </p>
 
-一个面向 Codex 的个人 Skill：让 Codex 通过本地 HTTP 服务创建、继续和检查 OpenCode 会话，并把模型选择、随机认证、临时端口与会话清理封装为可复用脚本。
+> **让 Codex 当调度员，把 OpenCode 的限免模型组织成一组先试后用的外部协作者。**
+>
+> 通俗一点：先把免费模型逐个跑一遍，再把真正能用的算力分配给任务——羊毛可以薅，结果必须验。
 
-## 真实试运行
+`codex-opencode-session` 是一个面向 Codex 的个人 Skill。它可以刷新 OpenCode 模型目录、识别公开价格为零的活动模型、并发执行真实 smoke test，再通过隔离的本地 OpenCode 会话完成分析、审查或编码任务。
 
-下面是 Muse Spark 1.2 贡献者免费版的实际结果。公开示例省略了临时会话 ID；测试会话在核验完成后已删除。
+## 先看实测
 
-```json
-{
-  "ok": true,
-  "requested_model": "opencode-go/muse-spark-1.2-contributor",
-  "actual_model": "muse-spark-1.2-contributor",
-  "reply": "OPENCODE_SESSION_OK",
-  "server_version": "1.18.23",
-  "test_session_deleted": true
-}
-```
+2026-08-27 使用 Windows、Python 3.14 与 OpenCode 1.18.23 实测。免费模型状态会随地区、限时活动、账户额度和服务负载变化，下面记录的是一次真实快照。
 
-## 它解决什么问题
+| 路线 | 模型 | 本次结果 | 依据 |
+| --- | --- | --- | --- |
+| OpenCode Go | `muse-spark-1.2-contributor` | ✅ 通过 | 精确返回 `OPENCODE_SESSION_OK`，当前默认模型 |
+| OpenCode Zen | `nemotron-3-ultra-free` | ✅ 通过 | 首次 smoke test 通过 |
+| OpenCode Zen | `nemotron-3.5-lightning-free` | ✅ 通过 | 第二次 smoke test 通过 |
+| OpenCode Zen | `big-pickle` | ⚠️ 当前额度受限 | 两次会话超时；官方端点返回 `FreeUsageLimitError` |
+| OpenCode Zen | `hy3-free` | ⚠️ 当前额度受限 | 两次会话超时；官方端点返回 `FreeUsageLimitError` |
+| OpenCode Zen | `mimo-v2.5-free` | ⚠️ 当前额度受限 | 两次会话超时；官方端点返回 `FreeUsageLimitError` |
+| OpenCode Zen | `muse-spark-1.2-contributor-free` | ⚠️ 当前额度受限 | 两次会话超时；官方端点返回 `FreeUsageLimitError` |
 
-直接操作 `opencode serve` 时，需要自行处理认证、端口、代理、权限、会话 ID 和进程清理。这个 Skill 将这些容易出错的部分整理为三个稳定命令：
+Go 是每月 10 美元的订阅服务；当前默认的 Muse Contributor 属于 Go 模型阵容，不能称为零费用模型。Zen 才提供公开标价为零的限时免费模型。模型与价格请以 [OpenCode Zen 官方说明](https://opencode.ai/docs/zen/) 和 [OpenCode Go 官方说明](https://opencode.ai/docs/go/) 为准。
 
-| 命令 | 用途 | 是否保留会话 |
-| --- | --- | --- |
-| `status` | 检查 CLI、版本、数据库与默认模型 | 不创建会话 |
-| `invoke` | 创建或继续真实 OpenCode 会话 | 保留 |
-| `smoke-test` | 验证本地 API 与当前默认模型 | 删除测试会话 |
+## 最快开始
 
-每次调用都会选择空闲端口，服务仅监听 `127.0.0.1`，认证密码随机生成。脚本只关闭自己启动的进程树，不会统一终止桌面端、TUI 或其他 OpenCode 服务。
+### 1. 让 Codex 自动检查免费模型池
 
-## 工作方式
+在 Codex 中直接说：
 
 ```text
-Codex
-  └─ opencode_session.py
-       ├─ 读取 defaults.json
-       ├─ 选择空闲端口并生成随机密码
-       ├─ 启动 127.0.0.1 上的临时 opencode serve
-       ├─ 创建或继续准确的 session ID
-       ├─ 等待模型回复并返回结构化结果
-       └─ 关闭本次服务；普通会话继续保留
+Use $codex-opencode-session to refresh the OpenCode free model pool,
+smoke-test it with 3 concurrent workers, and dispatch only the models
+that return a verified reply and delete their test sessions successfully.
 ```
 
-## 安装
-
-需要本机已经安装并登录 [OpenCode](https://opencode.ai/)，同时具备 Python 3.10 或更新版本。
-
-PowerShell：
-
-```powershell
-git clone https://github.com/ZiChenWang114514/codex-opencode-skill.git `
-  "$env:USERPROFILE\.codex\skills\codex-opencode-session"
-```
-
-重新打开 Codex 任务后，可以直接调用：
-
-```text
-Use $codex-opencode-session to start an OpenCode session for this project.
-```
-
-## 快速使用
-
-### 1. 检查状态
+对应命令：
 
 ```powershell
 python "$env:USERPROFILE\.codex\skills\codex-opencode-session\scripts\opencode_session.py" `
-  status --json
+  free-pool `
+  --dir "D:\safe\test-dir" `
+  --provider opencode `
+  --parallel 3 `
+  --timeout 300 `
+  --json
 ```
 
-### 2. 创建真实会话
+`free-pool` 不依赖模型名称中的 `free` 字样。它读取实时元数据，只选择 active 且输入、输出、缓存读写价格全部为零的模型，然后并发验证回复、实际模型和会话清理。
+
+### 2. 把任务交给已经通过的模型
 
 ```powershell
 python "$env:USERPROFILE\.codex\skills\codex-opencode-session\scripts\opencode_session.py" `
   invoke `
   --dir "D:\path\to\repo" `
+  --model "opencode/nemotron-3-ultra-free" `
+  --agent plan `
   --title "review-api" `
   --prompt "检查这个项目的 API 实现，并给出可验证的修改建议。" `
   --json
 ```
 
-长任务建议将提示词保存为 UTF-8 文件，再使用 `--prompt-file`：
-
-```powershell
-python "$env:USERPROFILE\.codex\skills\codex-opencode-session\scripts\opencode_session.py" `
-  invoke --dir "D:\path\to\repo" --prompt-file ".\phase-01.txt" --json
-```
+真实任务可以启动多个独立 `invoke` 进程。每个进程都应有明确的目录、模型、标题和提示词；Codex 最后检查文件差异和测试结果。免费服务常有并发与额度限制，建议从 2–3 路开始。
 
 ### 3. 继续准确会话
 
@@ -106,18 +84,42 @@ python "$env:USERPROFILE\.codex\skills\codex-opencode-session\scripts\opencode_s
   --json
 ```
 
-继续会话时，应使用创建该会话时的工作目录，并明确传入 `session_id`。
+继续任务时使用创建该会话时的工作目录，并明确传入准确 `session_id`。
 
-### 4. 运行测试
+## 四个稳定命令
 
-```powershell
-python "$env:USERPROFILE\.codex\skills\codex-opencode-session\scripts\opencode_session.py" `
-  smoke-test --dir "D:\safe\test-dir" --json
+| 命令 | 用途 | 会话处理 |
+| --- | --- | --- |
+| `status` | 检查 CLI、版本、数据库与默认模型 | 不创建会话 |
+| `free-pool` | 发现零成本模型并并发试跑 | 测试会话自动删除 |
+| `invoke` | 创建或继续真实 OpenCode 会话 | 正式会话保留 |
+| `smoke-test` | 验证指定模型与本地 API | 测试会话自动删除 |
+
+脚本为每次调用选择空闲端口，服务仅监听 `127.0.0.1`，认证密码随机生成。它只关闭自己启动的进程树，不会统一终止桌面端、TUI 或其他 OpenCode 服务。
+
+## 调度过程
+
+```text
+Codex
+  └─ free-pool
+       ├─ 刷新 OpenCode 实时模型元数据
+       ├─ 筛选 active + 全部公开成本为 0
+       ├─ 以指定并发量创建隔离 smoke test
+       ├─ 核对 reply / actual_model / session cleanup
+       └─ 返回通过项与明确失败原因
+
+Codex
+  └─ invoke --model <passed-model>
+       ├─ 选择空闲端口并生成随机密码
+       ├─ 启动 127.0.0.1 上的临时 OpenCode 服务
+       ├─ 创建或继续准确会话
+       ├─ 等待模型回复并返回结构化结果
+       └─ 关闭本次服务；正式会话继续保留
 ```
 
 ## 默认模型
 
-当前默认模型保存在 [`references/defaults.json`](./references/defaults.json)：
+默认配置保存在 [`references/defaults.json`](./references/defaults.json)：
 
 ```json
 {
@@ -125,39 +127,29 @@ python "$env:USERPROFILE\.codex\skills\codex-opencode-session\scripts\opencode_s
 }
 ```
 
-这是 OpenCode Go 的贡献者免费条目。Go provider 的准确 ID 以 `opencode models opencode-go` 为准；Zen provider 使用 `opencode/...` 形式，并有独立的模型目录与认证信息。
+用户在任务中指定的模型优先于默认值。单次调用使用 `--model provider/model`，模型支持变体时可额外使用 `--variant high` 等实时元数据中存在的取值。
 
-需要更换默认模型时，只修改 `model` 字段。单次调用也可以使用：
+OpenCode Go 使用 `opencode-go/...`，OpenCode Zen 使用 `opencode/...`。两条线路的模型 ID、订阅方式与凭据相互独立。
+
+## 安装
+
+需要本机已经安装并登录 [OpenCode](https://opencode.ai/)，同时具备 Python 3.10 或更新版本。
 
 ```powershell
---model provider/model
+git clone https://github.com/ZiChenWang114514/codex-opencode-skill.git `
+  "$env:USERPROFILE\.codex\skills\codex-opencode-session"
 ```
 
-用户在任务中明确指定的模型优先于默认配置。
+重新打开 Codex 任务后即可调用 `$codex-opencode-session`。
 
-## Agent 与超时
+## 使用须知
 
-- 默认使用 `build` agent，允许执行编码任务。
-- 只读分析可使用 `--agent plan`。
-- 同步请求的默认等待时间为 600 秒，可用 `--timeout` 调整。
-- 长时间并行任务可以进一步使用 OpenCode 的 `prompt_async` 与 SSE API；相关说明见 [`references/operation-protocol.md`](./references/operation-protocol.md)。
-
-## 安全设计
-
-- 服务固定监听本地回环地址 `127.0.0.1`。
-- 每次调用生成新的随机密码，不写入配置文件或输出。
-- `NO_PROXY` 自动包含 `127.0.0.1`、`localhost` 和 `::1`，现有外部代理设置继续保留。
-- 测试数据仅按脚本本次记录的准确会话 ID 删除。
-- 失败日志保存在系统临时目录，错误信息不会显示认证密码。
-- 模型供应商返回错误或没有生成文本时，命令以非零状态退出，并提供经过删减的 `assistant_error`，便于准确重试对应会话。
-- 无人值守模式会允许 OpenCode 工具自动执行，因此应在用户已经授权的目录与任务中使用。
-
-## 当前限制
-
-- 每个 `invoke` 进程一次处理一个任务；可以并行启动多个进程，但仓库目前没有批量调度命令。
-- 当前实现使用同步消息 API，长任务需要设置足够的等待时间。
-- 已在 Windows、Python 3.14 和 OpenCode 1.18.23 上真实验证；其他系统仍需自行测试。
-- Skill 不负责安装、升级或登录 OpenCode。
+- Zen 免费模型属于限时服务，目录、价格与可用性可能随时变化；每次批量任务前重新运行 `free-pool`。
+- `429`、超时、空回复或模型不一致都表示当次未通过。不要通过多账户规避 provider 的额度限制。
+- 官方说明指出，部分免费模型会收集提示词和回复用于模型改进；Muse Contributor Free 还涉及未来 Meta 模型训练。敏感、个人或保密内容不应发送到这些免费端点。
+- 两款 Nemotron 免费端点属于 NVIDIA 试用服务，相关请求可能被记录用于安全和产品改进。详情见 [Zen Privacy](https://opencode.ai/docs/zen/#privacy)。
+- 无人值守 `build` 会允许工具自动执行，只应在用户已经授权的目录与任务中使用；只读检查使用 `--agent plan`。
+- API Key 由 OpenCode 自己的登录流程保存，不应出现在命令行参数、日志、README 或 Git 提交中。
 
 ## 仓库结构
 

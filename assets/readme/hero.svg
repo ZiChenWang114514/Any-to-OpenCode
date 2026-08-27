@@ -1,71 +1,76 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420" role="img" aria-labelledby="title desc">
-  <title id="title">codex-opencode-skill</title>
-  <desc id="desc">A Codex skill that launches isolated local OpenCode sessions, verifies the selected model, captures the reply, and preserves exact session IDs.</desc>
+  <title id="title">codex-opencode-skill free model dispatcher</title>
+  <desc id="desc">Codex discovers zero-cost OpenCode models, smoke-tests them in parallel, and dispatches work only to verified routes.</desc>
 
   <defs>
     <linearGradient id="surface" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#07111f"/>
       <stop offset="1" stop-color="#0b1728"/>
     </linearGradient>
-    <linearGradient id="path" x1="0" y1="0" x2="1" y2="0">
+    <linearGradient id="flow" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0" stop-color="#7dd3fc"/>
       <stop offset="1" stop-color="#5eead4"/>
     </linearGradient>
   </defs>
 
   <rect width="1200" height="420" rx="28" fill="url(#surface)"/>
-  <path d="M0 76H1200M736 76V420" stroke="#1e2d43" stroke-width="1"/>
+  <path d="M0 76H1200M708 76V420" stroke="#1e2d43" stroke-width="1"/>
 
   <g id="metadata" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18">
     <circle cx="58" cy="39" r="6" fill="#5eead4"/>
-    <text x="76" y="46" fill="#94a3b8">CODEX SKILL / OPENCODE SESSION ORCHESTRATION</text>
-    <text x="1138" y="46" text-anchor="end" fill="#7dd3fc">LOCAL · VERIFIED</text>
+    <text x="76" y="46" fill="#94a3b8">CODEX SKILL / FREE MODEL DISPATCH</text>
+    <text x="1138" y="46" text-anchor="end" fill="#7dd3fc">DISCOVER · VERIFY · RUN</text>
   </g>
 
   <g id="title-block" transform="translate(58 118)">
-    <text x="0" y="0" fill="#f8fafc" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="62" font-weight="750">codex-opencode</text>
-    <text x="0" y="68" fill="#5eead4" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="62" font-weight="750">skill</text>
-    <text x="0" y="121" fill="#cbd5e1" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="25">Launch isolated OpenCode sessions.</text>
-    <text x="0" y="156" fill="#cbd5e1" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="25">Verify the model. Keep the exact session.</text>
+    <text x="0" y="0" fill="#f8fafc" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="60" font-weight="750">codex-opencode</text>
+    <text x="0" y="66" fill="#5eead4" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="60" font-weight="750">skill</text>
+    <text x="0" y="120" fill="#cbd5e1" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="25">Make Codex the dispatcher.</text>
+    <text x="0" y="155" fill="#cbd5e1" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="25">Verify free routes before sending real work.</text>
 
     <g transform="translate(0 202)" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18">
-      <rect width="178" height="42" rx="10" fill="#102239" stroke="#28415d"/>
-      <text x="18" y="27" fill="#7dd3fc">127.0.0.1 only</text>
-      <rect x="192" width="146" height="42" rx="10" fill="#102239" stroke="#28415d"/>
-      <text x="210" y="27" fill="#5eead4">random auth</text>
-      <rect x="352" width="162" height="42" rx="10" fill="#102239" stroke="#28415d"/>
-      <text x="370" y="27" fill="#cbd5e1">exact session</text>
+      <rect width="168" height="42" rx="10" fill="#102239" stroke="#28415d"/>
+      <text x="18" y="27" fill="#7dd3fc">live metadata</text>
+      <rect x="182" width="166" height="42" rx="10" fill="#102239" stroke="#28415d"/>
+      <text x="200" y="27" fill="#5eead4">parallel smoke</text>
+      <rect x="362" width="166" height="42" rx="10" fill="#102239" stroke="#28415d"/>
+      <text x="380" y="27" fill="#cbd5e1">exact cleanup</text>
     </g>
   </g>
 
-  <g id="session-proof" transform="translate(778 104)">
-    <rect width="364" height="282" rx="18" fill="#081421" stroke="#28415d" stroke-width="2"/>
+  <g id="dispatch-proof" transform="translate(748 104)">
+    <rect width="394" height="282" rx="18" fill="#081421" stroke="#28415d" stroke-width="2"/>
     <g transform="translate(22 23)">
       <circle cx="7" cy="7" r="7" fill="#fb7185"/>
       <circle cx="31" cy="7" r="7" fill="#fbbf24"/>
       <circle cx="55" cy="7" r="7" fill="#5eead4"/>
-      <text x="318" y="13" text-anchor="end" fill="#64748b" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="16">smoke-test --json</text>
+      <text x="348" y="13" text-anchor="end" fill="#64748b" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="16">free-pool --parallel 3</text>
     </g>
 
-    <g transform="translate(24 76)" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
-      <text x="0" y="0" fill="#94a3b8" font-size="17">CODEX</text>
-      <text x="122" y="0" fill="#94a3b8" font-size="17">LOCAL SERVE</text>
-      <text x="275" y="0" fill="#94a3b8" font-size="17">MODEL</text>
-      <path d="M12 28H300" stroke="url(#path)" stroke-width="3" stroke-linecap="round"/>
-      <circle cx="12" cy="28" r="8" fill="#7dd3fc"/>
-      <circle cx="160" cy="28" r="8" fill="#0f2033" stroke="#5eead4" stroke-width="4"/>
-      <circle cx="300" cy="28" r="8" fill="#5eead4"/>
-
-      <g transform="translate(0 74)" font-size="20">
-        <text x="0" y="0" fill="#64748b">port</text>
-        <text x="98" y="0" fill="#f8fafc">free / isolated</text>
-        <text x="0" y="37" fill="#64748b">model</text>
-        <text x="98" y="37" fill="#5eead4">✓ verified</text>
-        <text x="0" y="74" fill="#64748b">reply</text>
-        <text x="98" y="74" fill="#7dd3fc">✓ captured</text>
-        <text x="0" y="111" fill="#64748b">session</text>
-        <text x="98" y="111" fill="#f8fafc">✓ exact ID</text>
+    <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+      <g transform="translate(24 78)">
+        <rect width="110" height="100" rx="14" fill="#102239" stroke="#28415d"/>
+        <text x="55" y="33" text-anchor="middle" fill="#7dd3fc" font-size="19">DISCOVER</text>
+        <text x="55" y="63" text-anchor="middle" fill="#f8fafc" font-size="18">zero cost</text>
+        <text x="55" y="87" text-anchor="middle" fill="#94a3b8" font-size="18">active</text>
       </g>
+      <g transform="translate(142 78)">
+        <rect width="110" height="100" rx="14" fill="#102239" stroke="#28415d"/>
+        <text x="55" y="33" text-anchor="middle" fill="#5eead4" font-size="19">VERIFY</text>
+        <text x="55" y="63" text-anchor="middle" fill="#f8fafc" font-size="18">reply</text>
+        <text x="55" y="87" text-anchor="middle" fill="#94a3b8" font-size="18">model</text>
+      </g>
+      <g transform="translate(260 78)">
+        <rect width="110" height="100" rx="14" fill="#102239" stroke="#28415d"/>
+        <text x="55" y="33" text-anchor="middle" fill="#7dd3fc" font-size="19">DISPATCH</text>
+        <text x="55" y="63" text-anchor="middle" fill="#f8fafc" font-size="18">passed</text>
+        <text x="55" y="87" text-anchor="middle" fill="#94a3b8" font-size="18">routes</text>
+      </g>
+    </g>
+
+    <g transform="translate(24 214)" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18">
+      <circle cx="8" cy="8" r="8" fill="#5eead4"/>
+      <text x="28" y="14" fill="#cbd5e1">verified replies · clear failures</text>
     </g>
   </g>
 </svg>

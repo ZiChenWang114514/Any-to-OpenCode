@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
-"""Start an isolated local OpenCode server and invoke a session safely."""
+"""Discover model pools and run isolated local OpenCode sessions safely."""
 
 from __future__ import annotations
 
 import argparse
 import base64
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import json
 import os
 from pathlib import Path
+import re
 import secrets
 import shutil
 import socket
@@ -22,6 +24,7 @@ from urllib.request import Request, urlopen
 
 SKILL_DIR = Path(__file__).resolve().parent.parent
 DEFAULTS_PATH = SKILL_DIR / "references" / "defaults.json"
+ANSI_ESCAPE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
 
 
 class OpenCodeAssistantError(RuntimeError):
@@ -173,7 +176,7 @@ def read_tail(path: Path, max_chars: int = 4000) -> str:
 
 def parse_assistant_response(
     response: dict[str, Any], session_id: str, requested_model_id: str,
-) -> tuple[str, str | None]:
+) -> tuple[str, str | None, str | None]:
     info = response.get("info")
     info = info if isinstance(info, dict) else {}
     error = info.get("error")
@@ -195,6 +198,7 @@ def parse_assistant_response(
         if isinstance(part, dict) and part.get("type") == "text" and part.get("text")
     )
     actual_model = info.get("modelID")
+    actual_variant = info.get("variant")
     if actual_model and actual_model != requested_model_id:
         raise RuntimeError(f"Requested model {requested_model_id}, received {actual_model}")
     if not reply.strip():
@@ -205,7 +209,49 @@ def parse_assistant_response(
             "status_code": None,
             "retryable": None,
         })
-    return reply, actual_model
+    return reply, actual_model, actual_variant
+
+
+def parse_verbose_models(output: str, provider: str) -> list[dict[str, Any]]:
+    """Parse `opencode models --verbose` records for one provider."""
+    clean = ANSI_ESCAPE.sub("", output)
+    decoder = json.JSONDecoder()
+    pattern = re.compile(rf"(?m)^{re.escape(provider)}/[^\r\n]+\r?\n")
+    records: list[dict[str, Any]] = []
+    for match in pattern.finditer(clean):
+        payload = clean[match.end():].lstrip()
+        try:
+            record, _ = decoder.raw_decode(payload)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(record, dict) and record.get("providerID") == provider:
+            records.append(record)
+    return records
+
+
+def is_zero_cost_model(record: dict[str, Any]) -> bool:
+    """Return true for active models whose advertised token costs are all zero."""
+    if record.get("status") != "active":
+        return False
+    cost = record.get("cost")
+    if not isinstance(cost, dict):
+        return False
+    cache = cost.get("cache")
+    cache = cache if isinstance(cache, dict) else {}
+    values = (cost.get("input"), cost.get("output"), cache.get("read"), cache.get("write"))
+    return all(isinstance(value, (int, float)) and value == 0 for value in values)
+
+
+def discover_free_models(executable: str, provider: str, refresh: bool) -> list[str]:
+    arguments = ["models", provider, "--verbose"]
+    if refresh:
+        arguments.append("--refresh")
+    result = run_cli(executable, *arguments, timeout=90)
+    if result.returncode != 0:
+        raise RuntimeError(result.stderr.strip() or "OpenCode model discovery failed")
+    records = parse_verbose_models(result.stdout, provider)
+    models = [f"{provider}/{record['id']}" for record in records if is_zero_cost_model(record)]
+    return sorted(set(models))
 
 
 def invoke(args: argparse.Namespace, smoke_test: bool = False) -> dict[str, Any]:
@@ -217,6 +263,7 @@ def invoke(args: argparse.Namespace, smoke_test: bool = False) -> dict[str, Any]
     model = args.model or defaults["model"]
     provider, model_id = split_model(model)
     agent = args.agent or defaults.get("agent", "build")
+    variant = getattr(args, "variant", None) or defaults.get("variant")
     host = defaults.get("host", "127.0.0.1")
     if host != "127.0.0.1":
         raise ValueError("This helper only permits host 127.0.0.1")
@@ -225,6 +272,7 @@ def invoke(args: argparse.Namespace, smoke_test: bool = False) -> dict[str, Any]
     base_url = f"http://{host}:{port}"
     log_dir = Path(tempfile.mkdtemp(prefix="codex-opencode-"))
     process: subprocess.Popen[Any] | None = None
+    auth_header: str | None = None
     session_id = getattr(args, "session_id", None)
     created_session = False
     try:
@@ -250,24 +298,30 @@ def invoke(args: argparse.Namespace, smoke_test: bool = False) -> dict[str, Any]
         if not prompt or not prompt.strip():
             raise ValueError("A non-empty --prompt or --prompt-file is required")
 
+        message_payload = {
+            "model": {"providerID": provider, "modelID": model_id},
+            "agent": agent,
+            "parts": [{"type": "text", "text": prompt}],
+        }
+        if variant:
+            message_payload["variant"] = variant
         response = http_json(
             base_url, auth_header, "POST", f"/session/{session_id}/message",
-            {
-                "model": {"providerID": provider, "modelID": model_id},
-                "agent": agent,
-                "parts": [{"type": "text", "text": prompt}],
-            },
+            message_payload,
             timeout=timeout,
         )
         if not isinstance(response, dict):
             raise RuntimeError("OpenCode returned an unexpected response")
-        reply, actual_model = parse_assistant_response(response, session_id, model_id)
+        reply, actual_model, actual_variant = parse_assistant_response(
+            response, session_id, model_id
+        )
         if smoke_test and reply.strip() != "OPENCODE_SESSION_OK":
             raise RuntimeError(f"Unexpected smoke-test reply: {reply!r}")
         result = {
             "ok": True, "session_id": session_id, "created_session": created_session,
             "workdir": str(workdir), "requested_model": model,
-            "actual_model": actual_model, "agent": agent, "reply": reply,
+            "actual_model": actual_model, "requested_variant": variant,
+            "actual_variant": actual_variant, "agent": agent, "reply": reply,
             "server_version": health.get("version"),
         }
         if smoke_test:
@@ -276,6 +330,12 @@ def invoke(args: argparse.Namespace, smoke_test: bool = False) -> dict[str, Any]
         return result
     except Exception as exc:
         details: dict[str, Any] = {"error": str(exc), "log_dir": str(log_dir)}
+        if smoke_test and created_session and session_id and auth_header:
+            try:
+                http_json(base_url, auth_header, "DELETE", f"/session/{session_id}", timeout=30)
+                details["test_session_deleted"] = True
+            except Exception as cleanup_exc:
+                details["test_session_delete_error"] = type(cleanup_exc).__name__
         if isinstance(exc, OpenCodeAssistantError):
             details["assistant_error"] = exc.details
         for name in ("server.stdout.log", "server.stderr.log"):
@@ -287,6 +347,73 @@ def invoke(args: argparse.Namespace, smoke_test: bool = False) -> dict[str, Any]
             stop_owned_process(process)
         if smoke_test:
             shutil.rmtree(log_dir, ignore_errors=True)
+
+
+def summarize_failure(exc: Exception) -> dict[str, Any]:
+    try:
+        details = json.loads(str(exc))
+    except (json.JSONDecodeError, TypeError):
+        return {"error": str(exc)}
+    if not isinstance(details, dict):
+        return {"error": str(exc)}
+    summary: dict[str, Any] = {"error": details.get("error", type(exc).__name__)}
+    if "assistant_error" in details:
+        summary["assistant_error"] = details["assistant_error"]
+    if "test_session_deleted" in details:
+        summary["test_session_deleted"] = details["test_session_deleted"]
+    if "test_session_delete_error" in details:
+        summary["test_session_delete_error"] = details["test_session_delete_error"]
+    return summary
+
+
+def free_pool(args: argparse.Namespace) -> dict[str, Any]:
+    executable = find_opencode()
+    models = discover_free_models(executable, args.provider, args.refresh)
+    if not models:
+        raise RuntimeError(f"No active zero-cost models found for provider {args.provider}")
+    attempts_per_model = int(args.retries) + 1
+    run_id = secrets.token_hex(4)
+
+    def smoke_model(model: str) -> dict[str, Any]:
+        failures: list[dict[str, Any]] = []
+        for attempt in range(1, attempts_per_model + 1):
+            model_id = model.split("/", 1)[1]
+            title = f"codex-free-pool-{run_id}-{model_id}-a{attempt}"
+            invoke_args = argparse.Namespace(
+                dir=args.dir, title=title, model=model, variant=None,
+                agent="plan", timeout=args.timeout, json=True,
+                prompt=None, prompt_file=None, session_id=None,
+            )
+            try:
+                result = invoke(invoke_args, smoke_test=True)
+                return {
+                    "model": model, "ok": True, "attempts": attempt,
+                    "actual_model": result.get("actual_model"),
+                    "reply": result.get("reply"),
+                    "server_version": result.get("server_version"),
+                    "test_session_deleted": result.get("test_session_deleted"),
+                }
+            except Exception as exc:
+                failures.append({"attempt": attempt, **summarize_failure(exc)})
+        return {"model": model, "ok": False, "attempts": attempts_per_model, "failures": failures}
+
+    results: list[dict[str, Any]] = []
+    workers = min(max(1, int(args.parallel)), len(models))
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = {pool.submit(smoke_model, model): model for model in models}
+        for future in as_completed(futures):
+            results.append(future.result())
+    results.sort(key=lambda item: item["model"])
+    passed = sum(1 for item in results if item["ok"])
+    return {
+        "ok": passed == len(results),
+        "provider": args.provider,
+        "discovered": len(models),
+        "passed": passed,
+        "failed": len(results) - passed,
+        "parallel": workers,
+        "results": results,
+    }
 
 
 def status() -> dict[str, Any]:
@@ -312,6 +439,16 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command", required=True)
     status_parser = subparsers.add_parser("status", help="Read-only OpenCode diagnostics")
     status_parser.add_argument("--json", action="store_true")
+    pool_parser = subparsers.add_parser(
+        "free-pool", help="Discover and concurrently smoke-test active zero-cost models"
+    )
+    pool_parser.add_argument("--dir", required=True)
+    pool_parser.add_argument("--provider", default="opencode")
+    pool_parser.add_argument("--parallel", type=int, choices=range(1, 9), default=3)
+    pool_parser.add_argument("--timeout", type=int, default=300)
+    pool_parser.add_argument("--retries", type=int, choices=range(0, 4), default=0)
+    pool_parser.add_argument("--no-refresh", dest="refresh", action="store_false")
+    pool_parser.add_argument("--json", action="store_true")
     for name, help_text in (
         ("invoke", "Create or continue a real OpenCode session"),
         ("smoke-test", "Run a temporary model and API test"),
@@ -320,6 +457,9 @@ def build_parser() -> argparse.ArgumentParser:
         command_parser.add_argument("--dir", required=True)
         command_parser.add_argument("--title", default=f"codex-opencode-{name}")
         command_parser.add_argument("--model", help="Temporary provider/model override")
+        command_parser.add_argument(
+            "--variant", help="Provider-specific model variant, for example xhigh"
+        )
         command_parser.add_argument("--agent", choices=("build", "plan"))
         command_parser.add_argument("--timeout", type=int)
         command_parser.add_argument("--json", action="store_true")
@@ -342,7 +482,12 @@ def print_result(result: dict[str, Any], as_json: bool) -> None:
 def main() -> int:
     args = build_parser().parse_args()
     try:
-        result = status() if args.command == "status" else invoke(args, args.command == "smoke-test")
+        if args.command == "status":
+            result = status()
+        elif args.command == "free-pool":
+            result = free_pool(args)
+        else:
+            result = invoke(args, args.command == "smoke-test")
         print_result(result, args.json)
         return 0 if result.get("ok") else 1
     except Exception as exc:
