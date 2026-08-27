@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420" role="img" aria-labelledby="title desc">
-  <title id="title">codex-opencode-skill free model dispatcher</title>
-  <desc id="desc">Codex discovers zero-cost OpenCode models, smoke-tests them in parallel, and dispatches work only to verified routes.</desc>
+  <title id="title">Any-to-OpenCode</title>
+  <desc id="desc">Route work from any compatible harness to local OpenCode sessions. Discover models, verify them, and resume exact sessions.</desc>
 
   <defs>
     <linearGradient id="surface" x1="0" y1="0" x2="1" y2="1">
@@ -18,15 +18,15 @@
 
   <g id="metadata" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18">
     <circle cx="58" cy="39" r="6" fill="#5eead4"/>
-    <text x="76" y="46" fill="#94a3b8">CODEX SKILL / FREE MODEL DISPATCH</text>
+    <text x="76" y="46" fill="#94a3b8">HARNESS INTERCONNECT · OPENCODE</text>
     <text x="1138" y="46" text-anchor="end" fill="#7dd3fc">DISCOVER · VERIFY · RUN</text>
   </g>
 
   <g id="title-block" transform="translate(58 118)">
-    <text x="0" y="0" fill="#f8fafc" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="60" font-weight="750">codex-opencode</text>
-    <text x="0" y="66" fill="#5eead4" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="60" font-weight="750">skill</text>
-    <text x="0" y="120" fill="#cbd5e1" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="25">Make Codex the dispatcher.</text>
-    <text x="0" y="155" fill="#cbd5e1" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="25">Verify free routes before sending real work.</text>
+    <text x="0" y="0" fill="#f8fafc" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="60" font-weight="750">Any-to</text>
+    <text x="0" y="66" fill="#5eead4" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="60" font-weight="750">OpenCode</text>
+    <text x="0" y="120" fill="#cbd5e1" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="25">Route any compatible harness</text>
+    <text x="0" y="155" fill="#cbd5e1" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="25">to verified local OpenCode sessions.</text>
 
     <g transform="translate(0 202)" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18">
       <rect width="168" height="42" rx="10" fill="#102239" stroke="#28415d"/>

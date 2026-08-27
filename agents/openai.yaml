@@ -1,6 +1,6 @@
 interface:
-  display_name: "Codex OpenCode Session"
-  short_description: "发现、试跑并调度本机 OpenCode 模型会话"
-  default_prompt: "Use $codex-opencode-session to verify the free model pool and dispatch an OpenCode session for this project."
+  display_name: "OpenCode Session"
+  short_description: "发现、试跑并调度本机 OpenCode 会话"
+  default_prompt: "Use $codex-opencode-session to inspect OpenCode and run this task in the specified workspace."
 policy:
   allow_implicit_invocation: true

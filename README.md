@@ -1,8 +1,12 @@
 <p align="center">
   <picture>
     <source media="(max-width: 680px)" srcset="./assets/readme/hero-mobile.png">
-    <img src="./assets/readme/hero.png" width="100%" alt="OpenCode Session: route work from any compatible harness to the designated OpenCode Harness">
+    <img src="./assets/readme/hero.png" width="100%" alt="Any-to-OpenCode: route work from any compatible harness to local OpenCode sessions">
   </picture>
+</p>
+
+<p align="center">
+  <strong>English</strong> · <a href="./README.zh-CN.md">简体中文</a>
 </p>
 
 <p align="center">
@@ -10,119 +14,115 @@
   <img alt="Python 3.10 or newer" src="https://img.shields.io/badge/python-3.10%2B-7dd3fc?style=flat-square">
   <img alt="Tested on Windows" src="https://img.shields.io/badge/tested-Windows-94a3b8?style=flat-square">
   <img alt="OpenCode 1.18.23 verified" src="https://img.shields.io/badge/OpenCode-1.18.23-f8fafc?style=flat-square">
-  <img alt="Default Muse Spark 1.2 Contributor" src="https://img.shields.io/badge/default-Muse_Spark_1.2-5eead4?style=flat-square">
 </p>
 
-> **让 Codex 当调度员，把 OpenCode 的限免模型组织成一组先试后用的外部协作者。**
->
-> 通俗一点：先把免费模型逐个跑一遍，再把真正能用的算力分配给任务——羊毛可以薅，结果必须验。
+# Any-to-OpenCode
 
-`codex-opencode-session` 是一个面向 Codex 的个人 Skill。它可以刷新 OpenCode 模型目录、识别公开价格为零的活动模型、并发执行真实 smoke test，再通过隔离的本地 OpenCode 会话完成分析、审查或编码任务。
+Connect any compatible coding harness to local OpenCode sessions. The adapter discovers currently available models, verifies them with real smoke tests, then creates or resumes an exact session in a directory you choose.
 
-## 先看实测
+This repository is a local session adapter: a Python CLI, plus a Codex Skill wrapper. It does not install OpenCode, and it is not an official OpenCode product.
 
-2026-08-27 使用 Windows、Python 3.14 与 OpenCode 1.18.23 实测。免费模型状态会随地区、限时活动、账户额度和服务负载变化，下面记录的是一次真实快照。
+## What it does
 
-| 路线 | 模型 | 本次结果 | 依据 |
+- Refresh live OpenCode model metadata and keep Go / Zen routes distinct.
+- Find models whose public input, output, and cache prices are all zero, then smoke-test them in parallel.
+- Start a headless OpenCode session on `127.0.0.1` with a one-time password, or resume the same session by ID.
+- Return structured results (`session_id`, actual model, reply, cleanup status) so the calling harness can inspect the repository itself.
+
+Codex, Claude Code, Grok Build, and other tools can call the Python CLI. Codex users can also invoke `$codex-opencode-session` after installing the Skill.
+
+## Live snapshot
+
+Recorded on 2026-08-27 with Windows, Python 3.14, and OpenCode 1.18.23. Free-model availability changes with region, promotions, quota, and load. Treat the table as one real snapshot, not a guarantee.
+
+| Route | Model | Result | Evidence |
 | --- | --- | --- | --- |
-| OpenCode Go | `muse-spark-1.2-contributor` | ✅ 通过 | 精确返回 `OPENCODE_SESSION_OK`，当前默认模型 |
-| OpenCode Zen | `nemotron-3-ultra-free` | ✅ 通过 | 首次 smoke test 通过 |
-| OpenCode Zen | `nemotron-3.5-lightning-free` | ✅ 通过 | 第二次 smoke test 通过 |
-| OpenCode Zen | `big-pickle` | ⚠️ 当前额度受限 | 两次会话超时；官方端点返回 `FreeUsageLimitError` |
-| OpenCode Zen | `hy3-free` | ⚠️ 当前额度受限 | 两次会话超时；官方端点返回 `FreeUsageLimitError` |
-| OpenCode Zen | `mimo-v2.5-free` | ⚠️ 当前额度受限 | 两次会话超时；官方端点返回 `FreeUsageLimitError` |
-| OpenCode Zen | `muse-spark-1.2-contributor-free` | ⚠️ 当前额度受限 | 两次会话超时；官方端点返回 `FreeUsageLimitError` |
+| OpenCode Go | `muse-spark-1.2-contributor` | Passed | Exact reply `OPENCODE_SESSION_OK`; current default model |
+| OpenCode Zen | `nemotron-3-ultra-free` | Passed | First smoke test passed |
+| OpenCode Zen | `nemotron-3.5-lightning-free` | Passed | Second smoke test passed |
+| OpenCode Zen | `big-pickle` | Quota limited | Two timeouts; endpoint returned `FreeUsageLimitError` |
+| OpenCode Zen | `hy3-free` | Quota limited | Two timeouts; endpoint returned `FreeUsageLimitError` |
+| OpenCode Zen | `mimo-v2.5-free` | Quota limited | Two timeouts; endpoint returned `FreeUsageLimitError` |
+| OpenCode Zen | `muse-spark-1.2-contributor-free` | Quota limited | Two timeouts; endpoint returned `FreeUsageLimitError` |
 
-Go 是每月 10 美元的订阅服务；当前默认的 Muse Contributor 属于 Go 模型阵容，不能称为零费用模型。Zen 才提供公开标价为零的限时免费模型。模型与价格请以 [OpenCode Zen 官方说明](https://opencode.ai/docs/zen/) 和 [OpenCode Go 官方说明](https://opencode.ai/docs/go/) 为准。
+Go is a paid subscription. The current default Muse Contributor model is on the Go roster, so it is not a zero-cost model. Zen is the route that currently lists publicly zero-priced models. Confirm prices in the [OpenCode Zen docs](https://opencode.ai/docs/zen/) and [OpenCode Go docs](https://opencode.ai/docs/go/).
 
-## 最快开始
+## Install
 
-### 1. 让 Codex 自动检查免费模型池
+You need Python 3.10+ and a logged-in [OpenCode](https://opencode.ai/) CLI.
 
-在 Codex 中直接说：
-
-```text
-Use $codex-opencode-session to refresh the OpenCode free model pool,
-smoke-test it with 3 concurrent workers, and dispatch only the models
-that return a verified reply and delete their test sessions successfully.
+```powershell
+git clone https://github.com/ZiChenWang114514/Any-to-OpenCode.git `
+  "$env:USERPROFILE\.codex\skills\codex-opencode-session"
 ```
 
-对应命令：
+The clone destination is the Codex Skill id, `codex-opencode-session`. Reopen Codex after installing if you want `$codex-opencode-session`. Other harnesses can run `scripts/opencode_session.py` directly.
+
+## First use
+
+### 1. Check the local CLI
+
+```powershell
+python "$env:USERPROFILE\.codex\skills\codex-opencode-session\scripts\opencode_session.py" `
+  status --json
+```
+
+### 2. Verify the current free model pool
 
 ```powershell
 python "$env:USERPROFILE\.codex\skills\codex-opencode-session\scripts\opencode_session.py" `
   free-pool `
-  --dir "D:\safe\test-dir" `
+  --dir "C:\path\to\safe-dir" `
   --provider opencode `
   --parallel 3 `
   --timeout 300 `
   --json
 ```
 
-`free-pool` 不依赖模型名称中的 `free` 字样。它读取实时元数据，只选择 active 且输入、输出、缓存读写价格全部为零的模型，然后并发验证回复、实际模型和会话清理。
+`free-pool` does not guess from the word `free` in a model name. It reads live metadata, keeps only active models whose public prices are all zero, then checks reply, actual model, and test-session cleanup.
 
-### 2. 把任务交给已经通过的模型
+### 3. Run a real task on a model that passed
 
 ```powershell
 python "$env:USERPROFILE\.codex\skills\codex-opencode-session\scripts\opencode_session.py" `
   invoke `
-  --dir "D:\path\to\repo" `
+  --dir "C:\path\to\repo" `
   --model "opencode/nemotron-3-ultra-free" `
   --agent plan `
   --title "review-api" `
-  --prompt "检查这个项目的 API 实现，并给出可验证的修改建议。" `
+  --prompt "Review this project's API and list verifiable change suggestions." `
   --json
 ```
 
-真实任务可以启动多个独立 `invoke` 进程。每个进程都应有明确的目录、模型、标题和提示词；Codex 最后检查文件差异和测试结果。免费服务常有并发与额度限制，建议从 2–3 路开始。
+Each real task should use its own `invoke` process, directory, model, title, and prompt. Free endpoints often throttle concurrent work; start with two or three jobs. After the reply, inspect the repository and run its own tests.
 
-### 3. 继续准确会话
+### 4. Resume the same session
 
 ```powershell
 python "$env:USERPROFILE\.codex\skills\codex-opencode-session\scripts\opencode_session.py" `
   invoke `
-  --dir "D:\path\to\repo" `
+  --dir "C:\path\to\repo" `
   --session-id "ses_xxxxx" `
-  --prompt "根据刚才的检查结果继续处理。" `
+  --prompt "Continue from the previous review." `
   --json
 ```
 
-继续任务时使用创建该会话时的工作目录，并明确传入准确 `session_id`。
+Use the original working directory and the exact `session_id`.
 
-## 四个稳定命令
+## Commands
 
-| 命令 | 用途 | 会话处理 |
+| Command | Purpose | Sessions |
 | --- | --- | --- |
-| `status` | 检查 CLI、版本、数据库与默认模型 | 不创建会话 |
-| `free-pool` | 发现零成本模型并并发试跑 | 测试会话自动删除 |
-| `invoke` | 创建或继续真实 OpenCode 会话 | 正式会话保留 |
-| `smoke-test` | 验证指定模型与本地 API | 测试会话自动删除 |
+| `status` | Check CLI, version, database, and default model | None created |
+| `free-pool` | Discover zero-cost models and smoke-test them in parallel | Test sessions are deleted |
+| `invoke` | Create or resume a real OpenCode session | Formal sessions are kept |
+| `smoke-test` | Verify one model and the local API | Test session is deleted |
 
-脚本为每次调用选择空闲端口，服务仅监听 `127.0.0.1`，认证密码随机生成。它只关闭自己启动的进程树，不会统一终止桌面端、TUI 或其他 OpenCode 服务。
+Each call picks a free port, listens only on `127.0.0.1`, and generates a random password. The helper stops only the process tree it started. It does not kill the OpenCode desktop app, TUI, or other services.
 
-## 调度过程
+## Default model
 
-```text
-Codex
-  └─ free-pool
-       ├─ 刷新 OpenCode 实时模型元数据
-       ├─ 筛选 active + 全部公开成本为 0
-       ├─ 以指定并发量创建隔离 smoke test
-       ├─ 核对 reply / actual_model / session cleanup
-       └─ 返回通过项与明确失败原因
-
-Codex
-  └─ invoke --model <passed-model>
-       ├─ 选择空闲端口并生成随机密码
-       ├─ 启动 127.0.0.1 上的临时 OpenCode 服务
-       ├─ 创建或继续准确会话
-       ├─ 等待模型回复并返回结构化结果
-       └─ 关闭本次服务；正式会话继续保留
-```
-
-## 默认模型
-
-默认配置保存在 [`references/defaults.json`](./references/defaults.json)：
+The default is stored in [`references/defaults.json`](./references/defaults.json):
 
 ```json
 {
@@ -130,49 +130,44 @@ Codex
 }
 ```
 
-用户在任务中指定的模型优先于默认值。单次调用使用 `--model provider/model`，模型支持变体时可额外使用 `--variant high` 等实时元数据中存在的取值。
+A `--model provider/model` flag on one call overrides the default. Use `--variant high` only when that variant exists in live metadata.
 
-OpenCode Go 使用 `opencode-go/...`，OpenCode Zen 使用 `opencode/...`。两条线路的模型 ID、订阅方式与凭据相互独立。
+OpenCode Go uses `opencode-go/...`. OpenCode Zen uses `opencode/...`. Model IDs, subscriptions, and credentials are not interchangeable.
 
-## 安装
+## Using it from a coding agent
 
-需要本机已经安装并登录 [OpenCode](https://opencode.ai/)，同时具备 Python 3.10 或更新版本。
+Give the agent the repository path, the permission mode, and the outcome you want. For Codex:
 
-```powershell
-git clone https://github.com/ZiChenWang114514/codex-opencode-skill.git `
-  "$env:USERPROFILE\.codex\skills\codex-opencode-session"
+```text
+Use $codex-opencode-session in C:\path\to\repo.
+Check status, then start a plan-mode session that reviews the API
+and reports verifiable issues. Do not edit files.
 ```
 
-重新打开 Codex 任务后即可调用 `$codex-opencode-session`。
+Keep the request to the task. The adapter already knows how to discover models, isolate sessions, and return JSON.
 
-## 使用须知
+## Notes
 
-- Zen 免费模型属于限时服务，目录、价格与可用性可能随时变化；每次批量任务前重新运行 `free-pool`。
-- `429`、超时、空回复或模型不一致都表示当次未通过。不要通过多账户规避 provider 的额度限制。
-- 官方说明指出，部分免费模型会收集提示词和回复用于模型改进；Muse Contributor Free 还涉及未来 Meta 模型训练。敏感、个人或保密内容不应发送到这些免费端点。
-- 两款 Nemotron 免费端点属于 NVIDIA 试用服务，相关请求可能被记录用于安全和产品改进。详情见 [Zen Privacy](https://opencode.ai/docs/zen/#privacy)。
-- 无人值守 `build` 会允许工具自动执行，只应在用户已经授权的目录与任务中使用；只读检查使用 `--agent plan`。
-- API Key 由 OpenCode 自己的登录流程保存，不应出现在命令行参数、日志、README 或 Git 提交中。
+- Zen free models are promotional. Refresh `free-pool` before a batch of jobs.
+- `429`, timeouts, empty replies, or a mismatched `actual_model` mean that attempt failed. Do not rotate accounts to bypass provider limits.
+- Some free endpoints collect prompts and replies for model improvement. NVIDIA Nemotron trial endpoints may log requests for safety and product work. See [Zen Privacy](https://opencode.ai/docs/zen/#privacy). Do not send secrets or private data to those routes.
+- Unattended `build` allows tool execution. Use it only in a directory and task the user has already authorized. Read-only review uses `--agent plan`.
+- OpenCode stores API keys in its own login flow. Do not put keys in command arguments, logs, README files, or git commits.
 
-## 仓库结构
+## Repository layout
 
 ```text
 .
 ├─ SKILL.md
-├─ agents/
-│  └─ openai.yaml
-├─ references/
-│  ├─ defaults.json
-│  └─ operation-protocol.md
-├─ scripts/
-│  └─ opencode_session.py
-├─ tests/
-│  └─ test_opencode_session.py
+├─ agents/openai.yaml
+├─ references/defaults.json
+├─ references/operation-protocol.md
+├─ scripts/opencode_session.py
+├─ tests/test_opencode_session.py
 └─ assets/readme/
-   └─ hero.svg
 ```
 
-## 验证
+## Verify
 
 ```powershell
 python -m py_compile .\scripts\opencode_session.py
@@ -180,8 +175,15 @@ python -m unittest discover -s .\tests -v
 python .\scripts\opencode_session.py status --json
 ```
 
-Skill 的 YAML、目录名称和模板残留可用 Codex 内置的 `quick_validate.py` 检查。
+## Related adapters
+
+| Repository | Target |
+| --- | --- |
+| [Any-to-Grok-Build](https://github.com/ZiChenWang114514/Any-to-Grok-Build) | Grok Build |
+| [Any-to-Kimi-Code](https://github.com/ZiChenWang114514/Any-to-Kimi-Code) | Kimi Code |
+| [Any-to-ZCode](https://github.com/ZiChenWang114514/Any-to-ZCode) | ZCode / GLM |
+| [Any-to-DeepSeek-Harness](https://github.com/ZiChenWang114514/Any-to-DeepSeek-Harness) | DeepSeek Harness |
 
 ## License
 
-[MIT](./LICENSE)
+[MIT](./LICENSE) © 2026 Zichen Wang
