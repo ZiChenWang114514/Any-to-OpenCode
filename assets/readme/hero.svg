@@ -1,76 +1,48 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420" role="img" aria-labelledby="title desc">
   <title id="title">Any-to-OpenCode</title>
-  <desc id="desc">Route work from any compatible harness to local OpenCode sessions. Discover models, verify them, and resume exact sessions.</desc>
-
+  <desc id="desc">Route work from any compatible coding harness to an exact OpenCode session.</desc>
   <defs>
-    <linearGradient id="surface" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#07111f"/>
-      <stop offset="1" stop-color="#0b1728"/>
-    </linearGradient>
-    <linearGradient id="flow" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#7dd3fc"/>
-      <stop offset="1" stop-color="#5eead4"/>
-    </linearGradient>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#070B12"/><stop offset="1" stop-color="#111827"/></linearGradient>
+    <linearGradient id="trace" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#7DD3FC"/><stop offset="1" stop-color="#5EEAD4"/></linearGradient>
   </defs>
-
-  <rect width="1200" height="420" rx="28" fill="url(#surface)"/>
-  <path d="M0 76H1200M708 76V420" stroke="#1e2d43" stroke-width="1"/>
-
-  <g id="metadata" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18">
-    <circle cx="58" cy="39" r="6" fill="#5eead4"/>
-    <text x="76" y="46" fill="#94a3b8">HARNESS INTERCONNECT · OPENCODE</text>
-    <text x="1138" y="46" text-anchor="end" fill="#7dd3fc">DISCOVER · VERIFY · RUN</text>
+  <rect width="1200" height="420" rx="30" fill="url(#bg)"/>
+  <path d="M0 78H1200M706 78V420" stroke="#273244"/>
+  <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="18">
+    <circle cx="58" cy="39" r="6" fill="#5EEAD4"/><text x="76" y="46" fill="#9CA3AF">ANY-TO HARNESS ADAPTER</text>
+    <text x="1140" y="46" text-anchor="end" fill="#7DD3FC">FREE POOL · EXACT SESSIONS</text>
   </g>
-
-  <g id="title-block" transform="translate(58 118)">
-    <text x="0" y="0" fill="#f8fafc" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="60" font-weight="750">Any-to</text>
-    <text x="0" y="66" fill="#5eead4" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="60" font-weight="750">OpenCode</text>
-    <text x="0" y="120" fill="#cbd5e1" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="25">Route any compatible harness</text>
-    <text x="0" y="155" fill="#cbd5e1" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="25">to verified local OpenCode sessions.</text>
-
-    <g transform="translate(0 202)" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18">
-      <rect width="168" height="42" rx="10" fill="#102239" stroke="#28415d"/>
-      <text x="18" y="27" fill="#7dd3fc">live metadata</text>
-      <rect x="182" width="166" height="42" rx="10" fill="#102239" stroke="#28415d"/>
-      <text x="200" y="27" fill="#5eead4">parallel smoke</text>
-      <rect x="362" width="166" height="42" rx="10" fill="#102239" stroke="#28415d"/>
-      <text x="380" y="27" fill="#cbd5e1">exact cleanup</text>
-    </g>
+  <g transform="translate(58 126)" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">
+    <text x="0" y="0" fill="#F8FAFC" font-size="59" font-weight="760">Any-to</text>
+    <text x="0" y="68" fill="#5EEAD4" font-size="59" font-weight="760">OpenCode</text>
+    <text x="0" y="124" fill="#CBD5E1" font-size="25">Send work from any compatible harness.</text>
+    <text x="0" y="160" fill="#CBD5E1" font-size="25">Keep the exact workspace, model, and session.</text>
   </g>
-
-  <g id="dispatch-proof" transform="translate(748 104)">
-    <rect width="394" height="282" rx="18" fill="#081421" stroke="#28415d" stroke-width="2"/>
-    <g transform="translate(22 23)">
-      <circle cx="7" cy="7" r="7" fill="#fb7185"/>
-      <circle cx="31" cy="7" r="7" fill="#fbbf24"/>
-      <circle cx="55" cy="7" r="7" fill="#5eead4"/>
-      <text x="348" y="13" text-anchor="end" fill="#64748b" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="16">free-pool --parallel 3</text>
+  <g transform="translate(748 105)">
+    <rect width="394" height="270" rx="22" fill="#0A1220" stroke="#334155" stroke-width="2"/>
+    <g transform="translate(275 22)" color="#5EEAD4"><svg width="88" height="88" viewBox="0 0 300 300" fill="currentColor"><g transform="translate(30, 0)">
+<g clip-path="url(#clip0_1401_86283)">
+<mask id="mask0_1401_86283" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="240" height="300">
+<path d="M240 0H0V300H240V0Z" fill="white"/>
+</mask>
+<g mask="url(#mask0_1401_86283)">
+<path d="M180 240H60V120H180V240Z" fill="#4B4646"/>
+<path d="M180 60H60V240H180V60ZM240 300H0V0H240V300Z" fill="#F1ECEC"/>
+</g>
+</g>
+</g>
+<defs>
+<clipPath id="clip0_1401_86283">
+<rect width="240" height="300" fill="white"/>
+</clipPath>
+</defs></svg></g>
+    <text x="26" y="51" fill="#94A3B8" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="17">ROUTE</text>
+    <text x="26" y="84" fill="#F8FAFC" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="29" font-weight="700">OpenCode</text>
+    <path d="M50 164H344" stroke="url(#trace)" stroke-width="4" stroke-linecap="round"/>
+    <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="17" text-anchor="middle">
+      <circle cx="50" cy="164" r="9" fill="#7DD3FC"/><text x="50" y="202" fill="#CBD5E1">any harness</text>
+      <circle cx="197" cy="164" r="9" fill="#F8FAFC"/><text x="197" y="202" fill="#CBD5E1">adapter</text>
+      <circle cx="344" cy="164" r="9" fill="#5EEAD4"/><text x="344" y="202" fill="#CBD5E1">exact session</text>
     </g>
-
-    <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
-      <g transform="translate(24 78)">
-        <rect width="110" height="100" rx="14" fill="#102239" stroke="#28415d"/>
-        <text x="55" y="33" text-anchor="middle" fill="#7dd3fc" font-size="19">DISCOVER</text>
-        <text x="55" y="63" text-anchor="middle" fill="#f8fafc" font-size="18">zero cost</text>
-        <text x="55" y="87" text-anchor="middle" fill="#94a3b8" font-size="18">active</text>
-      </g>
-      <g transform="translate(142 78)">
-        <rect width="110" height="100" rx="14" fill="#102239" stroke="#28415d"/>
-        <text x="55" y="33" text-anchor="middle" fill="#5eead4" font-size="19">VERIFY</text>
-        <text x="55" y="63" text-anchor="middle" fill="#f8fafc" font-size="18">reply</text>
-        <text x="55" y="87" text-anchor="middle" fill="#94a3b8" font-size="18">model</text>
-      </g>
-      <g transform="translate(260 78)">
-        <rect width="110" height="100" rx="14" fill="#102239" stroke="#28415d"/>
-        <text x="55" y="33" text-anchor="middle" fill="#7dd3fc" font-size="19">DISPATCH</text>
-        <text x="55" y="63" text-anchor="middle" fill="#f8fafc" font-size="18">passed</text>
-        <text x="55" y="87" text-anchor="middle" fill="#94a3b8" font-size="18">routes</text>
-      </g>
-    </g>
-
-    <g transform="translate(24 214)" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18">
-      <circle cx="8" cy="8" r="8" fill="#5eead4"/>
-      <text x="28" y="14" fill="#cbd5e1">verified replies · clear failures</text>
-    </g>
+    <text x="197" y="246" text-anchor="middle" fill="#7DD3FC" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="17">STATUS · INVOKE · SMOKE TEST</text>
   </g>
 </svg>

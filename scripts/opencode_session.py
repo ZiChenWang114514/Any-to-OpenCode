@@ -442,7 +442,7 @@ def build_parser() -> argparse.ArgumentParser:
     pool_parser = subparsers.add_parser(
         "free-pool", help="Discover and concurrently smoke-test active zero-cost models"
     )
-    pool_parser.add_argument("--dir", required=True)
+    pool_parser.add_argument("--dir", "--workdir", dest="dir", required=True)
     pool_parser.add_argument("--provider", default="opencode")
     pool_parser.add_argument("--parallel", type=int, choices=range(1, 9), default=3)
     pool_parser.add_argument("--timeout", type=int, default=300)
@@ -454,7 +454,7 @@ def build_parser() -> argparse.ArgumentParser:
         ("smoke-test", "Run a temporary model and API test"),
     ):
         command_parser = subparsers.add_parser(name, help=help_text)
-        command_parser.add_argument("--dir", required=True)
+        command_parser.add_argument("--dir", "--workdir", dest="dir", required=True)
         command_parser.add_argument("--title", default=f"codex-opencode-{name}")
         command_parser.add_argument("--model", help="Temporary provider/model override")
         command_parser.add_argument(
@@ -479,6 +479,23 @@ def print_result(result: dict[str, Any], as_json: bool) -> None:
             print(f"{key}: {value}")
 
 
+def any_to_payload(result: dict[str, Any], command: str) -> dict[str, Any]:
+    """Add the shared Any-to fields without removing adapter-specific detail."""
+    payload = dict(result)
+    payload.setdefault("schema_version", 1)
+    payload.setdefault("target", "opencode")
+    payload.setdefault("command", command)
+    payload.setdefault("provider", payload.get("provider") or "opencode")
+    payload.setdefault("workdir", payload.get("directory"))
+    payload.setdefault("session_id", payload.get("session_id"))
+    payload.setdefault("requested_model", payload.get("requested_model") or payload.get("default_model"))
+    payload.setdefault("actual_model", payload.get("actual_model"))
+    payload.setdefault("result", payload.get("response"))
+    payload.setdefault("warnings", [])
+    payload.setdefault("error", None)
+    return payload
+
+
 def main() -> int:
     args = build_parser().parse_args()
     try:
@@ -488,10 +505,15 @@ def main() -> int:
             result = free_pool(args)
         else:
             result = invoke(args, args.command == "smoke-test")
+        if args.json:
+            result = any_to_payload(result, args.command)
         print_result(result, args.json)
         return 0 if result.get("ok") else 1
     except Exception as exc:
-        print(str(exc), file=sys.stderr)
+        if getattr(args, "json", False):
+            print_result(any_to_payload({"ok": False, "error": str(exc)}, args.command), True)
+        else:
+            print(str(exc), file=sys.stderr)
         return 1
 
 

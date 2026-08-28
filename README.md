@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
-    <source media="(max-width: 680px)" srcset="./assets/readme/hero-mobile.png">
-    <img src="./assets/readme/hero.png" width="100%" alt="Any-to-OpenCode: route work from any compatible harness to local OpenCode sessions">
+    <source media="(max-width: 680px)" srcset="./assets/readme/hero-mobile.svg">
+    <img src="./assets/readme/hero.svg" width="100%" alt="Any-to-OpenCode: route work from any compatible harness to exact OpenCode sessions">
   </picture>
 </p>
 
@@ -175,6 +175,10 @@ python -m unittest discover -s .\tests -v
 python .\scripts\opencode_session.py status --json
 ```
 
+## Machine-readable contract
+
+Every command accepts `--json`. The shared fields are `schema_version`, `ok`, `target`, `command`, `provider`, `workdir`, `session_id`, `requested_model`, `actual_model`, `result`, `warnings`, and `error`. Adapter-specific evidence remains alongside them.
+
 ## Related adapters
 
 | Repository | Target |
@@ -183,6 +187,8 @@ python .\scripts\opencode_session.py status --json
 | [Any-to-Kimi-Code](https://github.com/ZiChenWang114514/Any-to-Kimi-Code) | Kimi Code |
 | [Any-to-ZCode](https://github.com/ZiChenWang114514/Any-to-ZCode) | ZCode / GLM |
 | [Any-to-DeepSeek-Harness](https://github.com/ZiChenWang114514/Any-to-DeepSeek-Harness) | DeepSeek Harness |
+| [Any-to-Codex](https://github.com/ZiChenWang114514/Any-to-Codex) | Codex CLI |
+| [Any-to-Claude-Code](https://github.com/ZiChenWang114514/Any-to-Claude-Code) | Claude Code |
 
 ## License
 

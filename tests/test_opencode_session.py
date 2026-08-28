@@ -138,5 +138,17 @@ opencode/paid-one
         self.assertEqual(summary, {"error": "timed out", "test_session_deleted": True})
 
 
+class AnyToPayloadTests(unittest.TestCase):
+    def test_shared_fields_are_additive(self) -> None:
+        payload = opencode_session.any_to_payload(
+            {"ok": True, "session_id": "ses-1", "actual_model": "opencode/model"},
+            "invoke",
+        )
+        self.assertEqual(payload["schema_version"], 1)
+        self.assertEqual(payload["target"], "opencode")
+        self.assertEqual(payload["command"], "invoke")
+        self.assertEqual(payload["session_id"], "ses-1")
+
+
 if __name__ == "__main__":
     unittest.main()
